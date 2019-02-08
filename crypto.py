@@ -1,7 +1,15 @@
+# -*- coding: utf-8 -*-
 import requests
 import json
+import numpy
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+
+
 from pprint import pprint
 
+#calculates average gain and loss over a period (usually 14)
 def calcDailyGains(ClosingPrice, Period):
     AverageGain = []
     AverageLoss = []
@@ -24,7 +32,16 @@ def calcDailyGains(ClosingPrice, Period):
 
     return TotalAverageGain, TotalAverageLoss, CurrentChange
 
-#Formula to calculate RSI
+#calculates simple moving average over a period (usually 20)
+#returns values for middle upper and lower band
+def calcSMA(ClosingPrice, Period):
+    MiddleBand = (sum(ClosingPrice) / Period)
+    StandardDeviation = numpy.std(ClosingPrice)
+    UpperBand = MiddleBand + (StandardDeviation * 2)
+    LowerBand = MiddleBand - (StandardDeviation * 2)
+    return LowerBand, MiddleBand, UpperBand
+
+#Formula to calculate RSI using average gain and loss
 def calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, Period):
     CurrentGain = 0
     CurrentLoss = 0
@@ -60,3 +77,31 @@ for i in range(0, Period):
 TotalAverageGain, TotalAverageLoss, CurrentChange = calcDailyGains(ClosingPrice, Period)
 finalRSI = calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, Period)
 print (finalRSI)
+LowerBand, MiddleBand, UpperBand = calcSMA(ClosingPrice, Period)
+
+#Dash Graphing
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.layout = html.Div(children=[
+    html.H1(children='Hello Dash'),
+
+    html.Div(children='''
+        Dash: A web application framework for Python.
+    '''),
+
+    dcc.Graph(
+        id='example-graph',
+        figure={
+            'data': [
+                {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'SF'},
+                {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': u'Montréal'},
+            ],
+            'layout': {
+                'title': 'Dash Data Visualization'
+            }
+        }
+    )
+])
+
+if __name__ == "__main__":
+    app.run_server(debug=True)
