@@ -7,6 +7,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 from datetime import datetime
+from dash.dependencies import Input, Output
+import plotly.tools as tls
 
 #calculates average gain and loss over a period (usually 14)
 def calcDailyGains(ClosingPrice, RSIPeriod):
@@ -58,20 +60,24 @@ def calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, RSIPeriod):
     finalRSI = 100 - (100 / (1 + smoothRSI))
     return finalRSI
 
+def getAPI():
+    #Get's the current price
+    currentprice = requests.get("https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC&tsyms=USD&api_key=0bfac81ab05f7e572f8cc18a28a05c6c2f3665a10d17099efe1d7c2e3b3e0195")
+    pricedata = currentprice.json()
+    print (pricedata)
 
-#Get's the current price
-currentprice = requests.get("https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC&tsyms=USD&api_key=0bfac81ab05f7e572f8cc18a28a05c6c2f3665a10d17099efe1d7c2e3b3e0195")
-pricedata = currentprice.json()
-print (pricedata)
+    bitcoinHistorical = requests.get("https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&limit=30&api_key=0bfac81ab05f7e572f8cc18a28a05c6c2f3665a10d17099efe1d7c2e3b3e0195")
+    bitcoinHistoricalData = bitcoinHistorical.json()
+    print (bitcoinHistoricalData['Data'])
+    return bitcoinHistoricalData
 
-bitcoinHistorical = requests.get("https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&limit=20&api_key=0bfac81ab05f7e572f8cc18a28a05c6c2f3665a10d17099efe1d7c2e3b3e0195")
-bitcoinHistoricalData = bitcoinHistorical.json()
+
+bitcoinHistoricalData = getAPI()
 #OpeningPrice = []
 RSIClosingPrice = []
 BandClosingPrice = []
 RSIPeriod = 14
 BandPeriod = 20
-print (bitcoinHistoricalData['Data'])
 for i in range(0 + 6, RSIPeriod + 6):
     #OpeningPrice.append(bitcoinHistoricalData['Data'][i]['open'])
     RSIClosingPrice.append(bitcoinHistoricalData['Data'][i]['close'])
@@ -97,11 +103,17 @@ colors = {
 
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-test = []
-test1 = []
+INCREASING_COLOR = '#17BECF'
+DECREASING_COLOR = '#7F7F7F'
+graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = ([] for i in range(6))
 for i in range(0, BandPeriod):
-    test.append(bitcoinHistoricalData['Data'][i]['close'])
-    test1.append(datetime.utcfromtimestamp(bitcoinHistoricalData['Data'][i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
+    graphOpen.append(bitcoinHistoricalData['Data'][i]['open'])
+    graphClose.append(bitcoinHistoricalData['Data'][i]['close'])
+    graphHigh.append(bitcoinHistoricalData['Data'][i]['high'])
+    graphLow.append(bitcoinHistoricalData['Data'][i]['close'])
+    graphDate.append(datetime.utcfromtimestamp(bitcoinHistoricalData['Data'][i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
+    graphVolume.append(bitcoinHistoricalData['Data'][i]['volumeto'])
+
 app.layout = html.Div(children=[
     html.H1(
         children='Bitcoin Graph',
@@ -110,27 +122,79 @@ app.layout = html.Div(children=[
         }
     ),
 
-    html.Div(children='Charting in style', style={
-        'textAlign': 'center',
+    html.Div(
+        children='Charting cryptocurrency with technical analysis (and with style!)',
+        style={'textAlign': 'center',
     }),
 
-    dcc.Graph(
-        id='bitcoin-graph',
-        figure={
-            'data': [
-                go.Scatter(
-                    x = test1,
-                    y = test
-                )
-            ],
-            'layout': go.Layout(
-                xaxis={'title' : 'Date'},
-                yaxis={'title': 'Price'}
-            )
-        }
-    )
-])
+    html.Div([
+        dcc.Input(id='my-id', value='Bitcoin', type='text', style={'horizontalAlign': 'middle'}),
+        html.Div(id='my-div', style={'textAlign': 'center'})
+    ]),
 
+    dcc.Graph(
+        id='bitcoin-graph'
+    )
+
+
+])
+#
+# @app.callback(
+#     Output(component_id='my-div', component_property='children'),
+#     [Input(component_id='my-id', component_property='value')]
+# )
+# def update_output_div(input_value):
+#     return 'You\'ve entered "{}"'.format(input_value)
+
+#Callback for dynamic graph
+@app.callback(
+        Output('bitcoin-graph', 'figure'),
+        [Input(component_id='my-id', component_property = 'value')]
+        )
+def update_graph(in_data):
+    fig = tls.make_subplots(rows=2, cols=1, shared_xaxes=True,vertical_spacing=0.009,horizontal_spacing=0.009)
+    fig['layout']['margin'] = {'l': 30, 'r': 10, 'b': 50, 't': 25}
+
+    #traces = []
+    trace1 = go.Candlestick(
+        x = graphDate,
+        open = graphOpen,
+        high = graphHigh,
+        low = graphLow,
+        close = graphClose,
+        yaxis='y'
+        )
+    traces2 = go.Bar(
+        x=graphDate,
+        y=graphVolume,
+        yaxis='y2'
+    )
+
+    return {
+        'data': [trace1, trace2],
+        'layout': go.Layout(
+            title='Bitcoin Graph',
+            yaxis=dict(
+                title='Historical Daily Closing Price',
+                domain = [0.2, 0.8]
+            ),
+            yaxis2=dict(
+                title='Historical Daily Volume',
+                titlefont=dict(
+                    color='rgb(148, 103, 189)'
+                ),
+                tickfont=dict(
+                    color='rgb(148, 103, 189)'
+                ),
+                domain = [0, 0.2]
+            )
+
+        )
+    }
+
+    # fig.append_trace({'x':graphDate,'y':graphVolume,'type':'bar','name':'Volume'},2,1)
+    # fig['layout'].update(title='Graph of '+in_data)
+    # return fig
 
 if __name__ == "__main__":
     app.run_server(debug=True)
