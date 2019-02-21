@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 import requests
 import json
 import numpy
@@ -62,7 +62,7 @@ def calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, RSIPeriod):
 
 def getAPI(DaysToStore):
     #Get's the current price
-    currentprice = requests.get("https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC&tsyms=USD&api_key=0bfac81ab05f7e572f8cc18a28a05c6c2f3665a10d17099efe1d7c2e3b3e0195")
+    currentprice = requests.get("https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,LTC&tsyms=USD&api_key=0bfac81ab05f7e572f8cc18a28a05c6c2f3665a10d17099efe1d7c2e3b3e0195")
     pricedata = currentprice.json()
     print (pricedata)
 
@@ -72,8 +72,8 @@ def getAPI(DaysToStore):
     return bitcoinHistoricalData
 
 #init block
-DaysToDisplay = 10
-DaysToStore = 30
+DaysToDisplay = 30
+DaysToStore = DaysToDisplay + 20 #Must always be 20 days greater than DaysToDisplay
 CurrentDay = 30
 bitcoinHistoricalData = getAPI(DaysToStore)
 RSIClosingPrice, BandClosingPrice, RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues = ([] for i in range(6))
@@ -114,125 +114,132 @@ colors = {
     'text': '#7FDBFF'
 }
 
+
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+INCREASING_COLOR = '#17BECF'
+DECREASING_COLOR = '#7F7F7F'
+graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume, graphRSI, graphBand = ([] for i in range(8))
+for i in range(DaysToStore - DaysToDisplay, DaysToStore):
+    graphOpen.append(bitcoinHistoricalData['Data'][i]['open'])
+    graphClose.append(bitcoinHistoricalData['Data'][i]['close'])
+    graphHigh.append(bitcoinHistoricalData['Data'][i]['high'])
+    graphLow.append(bitcoinHistoricalData['Data'][i]['close'])
+    graphDate.append(datetime.utcfromtimestamp(bitcoinHistoricalData['Data'][i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
+    graphVolume.append(bitcoinHistoricalData['Data'][i]['volumeto'])
+    # graphOpen.append(bitcoinHistoricalData[i]['open'])
+    # graphClose.append(bitcoinHistoricalData[i]['close'])
+    # graphHigh.append(bitcoinHistoricalData[i]['high'])
+    # graphLow.append(bitcoinHistoricalData[i]['close'])
+    # graphDate.append(datetime.utcfromtimestamp(bitcoinHistoricalData[i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
+    # graphVolume.append(bitcoinHistoricalData[i]['volumeto'])
+
+app.layout = html.Div(children=[
+    html.H1(
+        id = 'title',
+        children='Bitcoin Graph',
+        style={
+            'textAlign': 'center',
+        }
+    ),
+
+    html.Div(
+        children='Charting cryptocurrency with technical analysis (and with style!)',
+        style={'textAlign': 'center',
+    }),
+
+    html.Div([
+        dcc.Dropdown(
+        id='crypto-type',
+        options=[
+            {'label': 'Bitcoin', 'value': 'BTC'},
+            {'label': 'Ethereum', 'value': 'ETH'},
+            {'label': 'Litecoin', 'value': 'LTC'}
+        ],
+        value='BTC'
+        ),
+    ]),
+
+    dcc.Graph(
+        id='bitcoin-graph'
+    )
+
+
+])
 #
-# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-# INCREASING_COLOR = '#17BECF'
-# DECREASING_COLOR = '#7F7F7F'
-# graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume, graphRSI, graphBand = ([] for i in range(8))
-# for i in range(DaysToStore - DaysToDisplay, DaysToStore):
-#     graphOpen.append(bitcoinHistoricalData['Data'][i]['open'])
-#     graphClose.append(bitcoinHistoricalData['Data'][i]['close'])
-#     graphHigh.append(bitcoinHistoricalData['Data'][i]['high'])
-#     graphLow.append(bitcoinHistoricalData['Data'][i]['close'])
-#     graphDate.append(datetime.utcfromtimestamp(bitcoinHistoricalData['Data'][i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
-#     graphVolume.append(bitcoinHistoricalData['Data'][i]['volumeto'])
-#     # graphOpen.append(bitcoinHistoricalData[i]['open'])
-#     # graphClose.append(bitcoinHistoricalData[i]['close'])
-#     # graphHigh.append(bitcoinHistoricalData[i]['high'])
-#     # graphLow.append(bitcoinHistoricalData[i]['close'])
-#     # graphDate.append(datetime.utcfromtimestamp(bitcoinHistoricalData[i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
-#     # graphVolume.append(bitcoinHistoricalData[i]['volumeto'])
-#
-# app.layout = html.Div(children=[
-#     html.H1(
-#         children='Bitcoin Graph',
-#         style={
-#             'textAlign': 'center',
-#         }
-#     ),
-#
-#     html.Div(
-#         children='Charting cryptocurrency with technical analysis (and with style!)',
-#         style={'textAlign': 'center',
-#     }),
-#
-#     html.Div([
-#         dcc.Dropdown(
-#         id='crypto-type',
-#         options=[
-#             {'label': 'Bitcoin', 'value': 'BTC'},
-#             {'label': 'Ethereum', 'value': 'ETH'},
-#             {'label': 'Litecoin', 'value': 'LTC'}
-#         ],
-#         value='BTC'
-#         ),
-#     ]),
-#
-#     dcc.Graph(
-#         id='bitcoin-graph'
-#     )
-#
-#
-# ])
-# #
-# # @app.callback(
-# #     Output(component_id='my-div', component_property='children'),
-# #     [Input(component_id='my-id', component_property='value')]
-# # )
-# # def update_output_div(input_value):
-# #     return 'You\'ve entered "{}"'.format(input_value)
-#
-# #Callback for dynamic graph
 # @app.callback(
-#         Output('bitcoin-graph', 'figure'),
-#         [Input(component_id='crypto-type', component_property = 'value')]
-#         )
-# def update_graph(in_data):
-#     fig = tls.make_subplots(rows=2, cols=1, shared_xaxes=True,vertical_spacing=0.009,horizontal_spacing=0.009)
-#     fig['layout']['margin'] = {'l': 40, 'r': 40, 'b': 40, 't': 40}
-#
-#     traces = []
-#     traces.append(go.Candlestick(
-#         x = graphDate,
-#         open = graphOpen,
-#         high = graphHigh,
-#         low = graphLow,
-#         close = graphClose,
-#         yaxis='y',
-#         name = 'Closing Price',
-#         increasing = dict( line = dict( color = INCREASING_COLOR ) ),
-#         decreasing = dict( line = dict( color = DECREASING_COLOR ) ),
-#         ))
-#     traces.append(go.Bar(
-#         x=graphDate,
-#         y=graphVolume,
-#         yaxis='y2',
-#         name = 'Volume',
-#         marker = dict(color=INCREASING_COLOR)
-#     ))
-#
-#     return {
-#         'data': traces,
-#         'layout': go.Layout(
-#             title='Bitcoin Graph',
-#             xaxis = dict(
-#                 rangeselector = dict( visible = True )
-#             ),
-#             yaxis=dict(
-#                 #title='Historical Daily Closing Price',
-#                 domain = [0.2, 1]
-#             ),
-#             yaxis2=dict(
-#                 #title='Historical Daily Volume',
-#                 titlefont=dict(
-#                     color='rgb(148, 103, 189)'
-#                 ),
-#                 tickfont=dict(
-#                     color='rgb(148, 103, 189)'
-#                 ),
-#                 domain = [0, 0.2],
-#                 showticklabels = False
-#             ),
-#             margin = dict(t=40,b=40,r=40,l=40
-#             ),
-#             legend = dict( orientation = 'h', y=0.9, x=0.3, yanchor='bottom')
-#
-#         )
-#     }
-#
-#     # fig.append_trace({'x':graphDate,'y':graphVolume,'type':'bar','name':'Volume'},2,1)
-#     # fig['layout'].update(title='Graph of '+in_data)
-#     # return fig
-#
-# if __name__ == "__main__":
-#     app.run_server(debug=True)
+#     Output(component_id='my-div', component_property='children'),
+#     [Input(component_id='my-id', component_property='value')]
+# )
+# def update_output_div(input_value):
+#     return 'You\'ve entered "{}"'.format(input_value)
+
+#Callback for dynamic graph
+@app.callback(
+        Output('bitcoin-graph', 'figure'),
+        [Input(component_id='crypto-type', component_property = 'value')]
+        )
+def update_graph(crypto_value):
+    traces = []
+    traces.append(go.Candlestick(
+        x = graphDate,
+        open = graphOpen,
+        high = graphHigh,
+        low = graphLow,
+        close = graphClose,
+        yaxis='y2',
+        name = 'Closing Price',
+        increasing = dict( line = dict( color = INCREASING_COLOR ) ),
+        decreasing = dict( line = dict( color = DECREASING_COLOR ) ),
+        ))
+    traces.append(go.Bar(
+        x=graphDate,
+        y=graphVolume,
+        yaxis='y',
+        name = 'Volume',
+        marker = dict(color=INCREASING_COLOR)
+    ))
+
+    return {
+        'data': traces,
+        'layout': go.Layout(
+            title = (crypto_value) + ' Graph',
+            xaxis = dict(
+                rangeslider = dict( visible = False ),
+            ),
+            yaxis=dict(
+                #title='Historical Daily Closing Price',
+                titlefont=dict(
+                    color='rgb(148, 103, 189)'
+                ),
+                tickfont=dict(
+                    color='rgb(148, 103, 189)'
+                ),
+                domain = [0, .2],
+                showticklabels = False
+            ),
+            yaxis2=dict(
+                #title='Historical Daily Volume',
+
+                domain = [0.2,0.8],
+
+            ),
+            margin = dict(t=40,b=40,r=40,l=40
+            ),
+            legend = dict( orientation = 'h', y=0.9, yanchor='bottom')
+
+        )
+    }
+
+    # fig.append_trace({'x':graphDate,'y':graphVolume,'type':'bar','name':'Volume'},2,1)
+    # fig['layout'].update(title='Graph of '+in_data)
+    # return fig
+
+@app.callback(
+        Output('title', 'children'),
+        [Input(component_id='crypto-type', component_property = 'value')]
+        )
+def update_title(dropdown_value):
+    return (dropdown_value) + ' Graph'
+
+if __name__ == "__main__":
+    app.run_server(debug=True)
