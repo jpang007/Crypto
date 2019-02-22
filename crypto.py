@@ -123,7 +123,7 @@ for i in range(DaysToStore - DaysToDisplay, DaysToStore):
     graphOpen.append(bitcoinHistoricalData['Data'][i]['open'])
     graphClose.append(bitcoinHistoricalData['Data'][i]['close'])
     graphHigh.append(bitcoinHistoricalData['Data'][i]['high'])
-    graphLow.append(bitcoinHistoricalData['Data'][i]['close'])
+    graphLow.append(bitcoinHistoricalData['Data'][i]['low'])
     graphDate.append(datetime.utcfromtimestamp(bitcoinHistoricalData['Data'][i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
     graphVolume.append(bitcoinHistoricalData['Data'][i]['volumeto'])
     # graphOpen.append(bitcoinHistoricalData[i]['open'])
@@ -161,25 +161,23 @@ app.layout = html.Div(children=[
 
     dcc.Graph(
         id='bitcoin-graph'
+    ),
+
+    dcc.Graph(
+        id = 'rsi-graph'
     )
 
 
 ])
-#
-# @app.callback(
-#     Output(component_id='my-div', component_property='children'),
-#     [Input(component_id='my-id', component_property='value')]
-# )
-# def update_output_div(input_value):
-#     return 'You\'ve entered "{}"'.format(input_value)
 
-#Callback for dynamic graph
+#Callback for crypto overall graph
 @app.callback(
         Output('bitcoin-graph', 'figure'),
         [Input(component_id='crypto-type', component_property = 'value')]
         )
 def update_graph(crypto_value):
     traces = []
+
     traces.append(go.Candlestick(
         x = graphDate,
         open = graphOpen,
@@ -187,7 +185,7 @@ def update_graph(crypto_value):
         low = graphLow,
         close = graphClose,
         yaxis='y2',
-        name = 'Closing Price',
+        name = 'Daily price',
         increasing = dict( line = dict( color = INCREASING_COLOR ) ),
         decreasing = dict( line = dict( color = DECREASING_COLOR ) ),
         ))
@@ -219,9 +217,7 @@ def update_graph(crypto_value):
             ),
             yaxis2=dict(
                 #title='Historical Daily Volume',
-
                 domain = [0.2,0.8],
-
             ),
             margin = dict(t=40,b=40,r=40,l=40
             ),
@@ -229,10 +225,34 @@ def update_graph(crypto_value):
 
         )
     }
-
-    # fig.append_trace({'x':graphDate,'y':graphVolume,'type':'bar','name':'Volume'},2,1)
-    # fig['layout'].update(title='Graph of '+in_data)
-    # return fig
+#callback updates RSI graph
+@app.callback(
+        Output('rsi-graph', 'figure'),
+        [Input(component_id='crypto-type', component_property = 'value')]
+)
+def rsi_graph(crypto_value):
+        traces2 = []
+        traces2.append(go.Scatter(
+            x=graphDate,
+            y=RSIValues
+        ))
+        return {
+            'data': traces2,
+            'layout': go.Layout(
+            title = (crypto_value) + ' RSI Graph',
+            xaxis = dict(
+                rangeslider = dict( visible = False ),
+            ),
+            yaxis=dict(
+                tickfont=dict(
+                    color='rgb(148, 103, 189)'
+                ),
+            ),
+            margin = dict(t=40,b=40,r=40,l=40
+            ),
+            legend = dict( orientation = 'h', y=0.9, yanchor='bottom')
+            )
+        }
 
 @app.callback(
         Output('title', 'children'),
