@@ -68,7 +68,7 @@ def getAPI(DaysToStore):
 
     bitcoinHistorical = requests.get("https://min-api.cryptocompare.com/data/histoday?fsym=BTC&tsym=USD&limit=" + str(DaysToStore) + "&api_key=0bfac81ab05f7e572f8cc18a28a05c6c2f3665a10d17099efe1d7c2e3b3e0195")
     bitcoinHistoricalData = bitcoinHistorical.json()
-    print (bitcoinHistoricalData['Data'])
+    #print (bitcoinHistoricalData['Data'])
     return bitcoinHistoricalData
 
 #init block
@@ -91,7 +91,7 @@ for i in range(0, DaysToDisplay):
     RSIValues.append(finalRSI)
     CurrentDay = CurrentDay - 1
 
-print (RSIValues)
+#print (RSIValues)
 #block for bollinger band calculation
 for i in range(0, DaysToDisplay):
     BandClosingPrice = [] #reset the list
@@ -104,7 +104,7 @@ for i in range(0, DaysToDisplay):
     UpperBandValues.append(UpperBand)
     CurrentDay = CurrentDay - 1
 
-print (LowerBandValues, MiddleBandValues, UpperBandValues)
+#print (LowerBandValues, MiddleBandValues, UpperBandValues)
 
 #Dash Graphing
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -132,6 +132,11 @@ for i in range(DaysToStore - DaysToDisplay, DaysToStore):
     # graphLow.append(bitcoinHistoricalData[i]['close'])
     # graphDate.append(datetime.utcfromtimestamp(bitcoinHistoricalData[i]['time']).strftime('%Y-%m-%d %H:%M:%S'))
     # graphVolume.append(bitcoinHistoricalData[i]['volumeto'])
+
+print graphDate
+print min(graphDate)[0:10]
+print datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d')
+print max(graphDate)
 
 app.layout = html.Div(children=[
     html.H1(
@@ -234,7 +239,10 @@ def rsi_graph(crypto_value):
         traces2 = []
         traces2.append(go.Scatter(
             x=graphDate,
-            y=RSIValues
+            y=RSIValues,
+            line=dict(
+                color = INCREASING_COLOR
+            )
         ))
         return {
             'data': traces2,
@@ -247,9 +255,27 @@ def rsi_graph(crypto_value):
                 tickfont=dict(
                     color='rgb(148, 103, 189)'
                 ),
+                range = [0,100]
             ),
             margin = dict(t=40,b=40,r=40,l=40
             ),
+            shapes=[dict(
+                    type='line',
+                    x0= datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d'),
+                    x1= datetime.strptime(max(graphDate)[0:10], '%Y-%m-%d'),
+                    y0= 70,
+                    y1= 70,
+                    line=dict(color= 'rgb(218,112,214)', dash='dot', width=1)
+                    ),
+                    dict(
+                    type='line',
+                    x0= datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d'),
+                    x1= datetime.strptime(max(graphDate)[0:10], '%Y-%m-%d'),
+                    y0= 30,
+                    y1= 30,
+                    line=dict(color= 'rgb(218,112,214)', dash='dot', width=1)
+                    ),
+            ],
             legend = dict( orientation = 'h', y=0.9, yanchor='bottom')
             )
         }
