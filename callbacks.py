@@ -1,15 +1,14 @@
- # -*- coding: utf-8 -*-
+from dash.dependencies import Input, Output
+import dash
+from app import app
+
 import requests
 import json
 import numpy
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
 import plotly.graph_objs as go
 from datetime import datetime
-from dash.dependencies import Input, Output
 import plotly.tools as tls
-
+#handles all calculations and callbacks
 #calculates average gain and loss over a period (usually 14)
 def calcDailyGains(ClosingPrice, RSIPeriod):
     AverageGain = []
@@ -112,9 +111,9 @@ colors = {
     'text': '#7FDBFF'
 }
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 INCREASING_COLOR = '#17BECF'
 DECREASING_COLOR = '#7F7F7F'
+
 graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume, graphRSI, graphBand = ([] for i in range(8))
 for i in range(DaysToStore - DaysToDisplay + 1, DaysToStore):
     graphOpen.append(bitcoinHistoricalData['Data'][i]['open'])
@@ -135,45 +134,11 @@ for i in range(DaysToStore - DaysToDisplay + 1, DaysToStore):
 # print datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d')
 # print max(graphDate)
 
-app.layout = html.Div(children=[
-    # html.H1(
-    #     id = 'title',
-    #     children='Bitcoin Graph',
-    #     style={
-    #         'textAlign': 'center',
-    #     }
-    # ),
-
-    html.Div(
-        children='Charting cryptocurrency with technical analysis (and with style!)',
-        style={'textAlign': 'center',
-    }),
-
-    html.Div([
-        dcc.Dropdown(
-        id='crypto-type',
-        options=[
-            {'label': 'Bitcoin', 'value': 'BTC'},
-            {'label': 'Ethereum', 'value': 'ETH'},
-            {'label': 'Litecoin', 'value': 'LTC'}
-        ],
-        value='BTC'
-        ),
-    ]),
-
-    dcc.Graph(
-        id='bitcoin-graph'
-    ),
-
-    dcc.Graph(
-        id = 'rsi-graph'
-    )
-])
 
 #Callback for crypto overall graph
 @app.callback(
-        Output('bitcoin-graph', 'figure'),
-        [Input(component_id='crypto-type', component_property = 'value')]
+        dash.dependencies.Output('bitcoin-graph', 'figure'),
+        [dash.dependencies.Input(component_id='crypto-type', component_property = 'value')]
         )
 def update_graph(crypto_value):
     traces = []
@@ -307,8 +272,8 @@ def update_graph(crypto_value):
     }
 #callback updates RSI graph
 @app.callback(
-        Output('rsi-graph', 'figure'),
-        [Input(component_id='crypto-type', component_property = 'value')]
+        dash.dependencies.Output('rsi-graph', 'figure'),
+        [dash.dependencies.Input(component_id='crypto-type', component_property = 'value')]
 )
 def rsi_graph(crypto_value):
         traces2 = []
@@ -356,12 +321,14 @@ def rsi_graph(crypto_value):
             )
         }
 
-# @app.callback(
-#         Output('title', 'children'),
-#         [Input(component_id='crypto-type', component_property = 'value')]
-#         )
-# def update_title(dropdown_value):
-#     return (dropdown_value) + ' Graph'
+@app.callback(
+        Output('title', 'children'),
+        [Input(component_id='crypto-type', component_property = 'value')]
+        )
+def update_title(dropdown_value):
+    return (dropdown_value) + ' Graph'
 
-if __name__ == "__main__":
-    app.run_server(debug=True)
+@app.callback(dash.dependencies.Output('page-2-content', 'children'),
+              [dash.dependencies.Input('page-2-radios', 'value')])
+def page_2_radios(value):
+    return 'You have selected "{}"'.format(value)

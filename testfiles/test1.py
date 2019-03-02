@@ -53,6 +53,14 @@ def calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, RSIPeriod):
     finalRSI = 100 - (100 / (1 + smoothRSI))
     return finalRSI
 
+def calcSMA(ClosingPrice, BandPeriod):
+    MiddleBand = numpy.mean(ClosingPrice)
+    StandardDeviation = numpy.std(ClosingPrice)
+    UpperBand = MiddleBand + (StandardDeviation * 2)
+    LowerBand = MiddleBand - (StandardDeviation * 2)
+    return LowerBand, MiddleBand, UpperBand
+
+
 #init block
 DaysToDisplay = 1
 DaysToStore = DaysToDisplay + 20 #Must always be 20 days greater (for RSI) than DaysToDisplay
@@ -63,10 +71,16 @@ RSIPeriod = 14
 BandPeriod = 20
 print bitcoinHistoricalData['Data']
 
-for i in range(7,22):
-    #need to go one above
-    RSIClosingPrice.append(bitcoinHistoricalData['Data'][i]['close'])
-print RSIClosingPrice
-TotalAverageGain, TotalAverageLoss, CurrentChange = calcDailyGains(RSIClosingPrice, RSIPeriod)
-finalRSI = calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, RSIPeriod)
-print finalRSI
+# for i in range(7,22):
+#     #need to go one above
+#     RSIClosingPrice.append(bitcoinHistoricalData['Data'][i]['close'])
+# print RSIClosingPrice
+# TotalAverageGain, TotalAverageLoss, CurrentChange = calcDailyGains(RSIClosingPrice, RSIPeriod)
+# finalRSI = calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, RSIPeriod)
+# print finalRSI
+
+for i in range(0,22):
+    BandClosingPrice.append(bitcoinHistoricalData['Data'][i]['close'])
+print BandClosingPrice
+LowerBand, MiddleBand, UpperBand = calcSMA(BandClosingPrice, BandPeriod)
+print LowerBand, MiddleBand, UpperBand
