@@ -87,7 +87,7 @@ for i in range(0, DaysToDisplay):
     RSIValues.insert(0,finalRSI)
     CurrentDay = CurrentDay - 1
 
-#print (RSIValues)
+print (RSIValues)
 CurrentDay = DaysToStore
 #block for bollinger band calculation
 for i in range(0, DaysToDisplay):

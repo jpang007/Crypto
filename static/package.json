@@ -1,0 +1,39 @@
+{
+  "name": "static",
+  "version": "1.0.0",
+  "description": "test",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack -p --progress --config webpack.config.js",
+    "dev-build": "webpack --progress -d --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --progress -d --config webpack.config.js --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpang007/Crypto.git"
+  },
+  "author": "Jeremy Pang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jpang007/Crypto/issues"
+  },
+  "homepage": "https://github.com/jpang007/Crypto#readme",
+  "presets": [
+    "@babel/preset-env",
+    "@babel/preset-react"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/polyfill": "^7.2.5",
+    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.5",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
+    "webpack": "^4.19.1",
+    "webpack-bundle-analyzer": "^2.13.1",
+    "webpack-cli": "^2.1.5",
+    "webpack-merge": "^4.1.2"
+  }
+}

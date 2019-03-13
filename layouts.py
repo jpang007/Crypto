@@ -1,25 +1,29 @@
 import dash_core_components as dcc
 import dash_html_components as html
-#handles setup of the layouts 
-index_page = html.Div([
-    dcc.Link('Go to Page 1', href='/page-1'),
+#handles setup of the layouts
+HomeLayout = html.Div([
+    dcc.Link('Go to Crypto Chart', href='/Crypto'),
     html.Br(),
-    dcc.Link('Go to Page 2', href='/page-2'),
+    dcc.Link('Go to Bot Performance', href='/Bot'),
+    html.Br(),
+    dcc.Link('Go to Learning', href='/Learning'),
 ])
 
-cryptoGraphLayout = html.Div(children=[
-    html.H1(
-        id = 'title',
-        children='Bitcoin Graph',
-        style={
-            'textAlign': 'center',
-        }
-    ),
+CryptoGraphLayout = html.Div(children=[
+    # html.H1(
+    #     id = 'title',
+    #     children='Bitcoin Graph',
+    #     style={
+    #         'textAlign': 'center',
+    #     }
+    # ),
 
-    # represents the URL bar, doesn't render anything
-    dcc.Link('Navigate to "/"', href='/'),
-    html.Br(),
-    dcc.Link('Navigate to "/page-2"', href='/page-2'),
+    # link block
+    # dcc.Link('Go to Home', href='/'),
+    # html.Br(),
+    # dcc.Link('Go to Bot Performance', href='/Bot'),
+    # html.Br(),
+    # dcc.Link('Go to Learning', href='/Learning'),
 
     # content will be rendered in this element
 
@@ -49,16 +53,30 @@ cryptoGraphLayout = html.Div(children=[
     )
 ])
 
-page_2_layout = html.Div([
+BotPerformanceLayout = html.Div([
     html.H1('Page 2'),
     dcc.RadioItems(
         id='page-2-radios',
         options=[{'label': i, 'value': i} for i in ['Orange', 'Blue', 'Red']],
         value='Orange'
     ),
-    html.Div(id='page-2-content'),
+    dcc.Link('Go to Home', href='/'),
     html.Br(),
-    dcc.Link('Go to Page 1', href='/page-1'),
+    dcc.Link('Go to Crypto Chart', href='/Crypto'),
     html.Br(),
-    dcc.Link('Go back to home', href='/')
+    dcc.Link('Go to Learning', href='/Learning'),
+])
+
+LearningLayout = html.Div([
+    html.H1('Page 2'),
+    dcc.RadioItems(
+        id='page-2-radios',
+        options=[{'label': i, 'value': i} for i in ['Orange', 'Blue', 'Red']],
+        value='Orange'
+    ),
+    dcc.Link('Go to Home', href='/'),
+    html.Br(),
+    dcc.Link('Go to Crypto Chart', href='/Crypto'),
+    html.Br(),
+    dcc.Link('Go to Bot Performance', href='/Bot'),
 ])
