@@ -70,19 +70,19 @@ def getAPI(DaysToStore, symbol):
 def mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPeriod, BandPeriod):
     RSIClosingPrice, BandClosingPrice, RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues = ([] for i in range(6))
     #block for RSI calcuation
-    for i in range(0, DaysToDisplay):
+    for i in range(DaysToDisplay):
         RSIClosingPrice = [] #reset the list
         for j in range(CurrentDay - RSIPeriod, CurrentDay + 1):
             RSIClosingPrice.append(cryptoHistoricalData['Data'][j]['close'])
         TotalAverageGain, TotalAverageLoss, CurrentChange = calcDailyGains(RSIClosingPrice, RSIPeriod)
         finalRSI = calcRSI(TotalAverageGain, TotalAverageLoss, CurrentChange, RSIPeriod)
-        RSIValues.insert(0,finalRSI)
+        RSIValues.append(finalRSI)
         CurrentDay = CurrentDay - 1
 
     #print (RSIValues)
     CurrentDay = DaysToStore
     #block for bollinger band calculation
-    for i in range(0, DaysToDisplay):
+    for i in range(DaysToDisplay):
         BandClosingPrice = [] #reset the list
         for i in range(CurrentDay - BandPeriod, CurrentDay + 1):
             #BandClosingPrice.append(bitcoinHistoricalData[i]['close'])
@@ -96,7 +96,7 @@ def mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPe
     #print (LowerBandValues, MiddleBandValues, UpperBandValues)
 
     graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume, graphRSI, graphBand = ([] for i in range(8))
-    for i in range(DaysToStore - DaysToDisplay + 1, DaysToStore):
+    for i in range(DaysToStore - DaysToDisplay, DaysToStore + 1):
         graphOpen.append(cryptoHistoricalData['Data'][i]['open'])
         graphClose.append(cryptoHistoricalData['Data'][i]['close'])
         graphHigh.append(cryptoHistoricalData['Data'][i]['high'])
@@ -114,9 +114,8 @@ def whichData(btcHistoricalData, ethHistoricalData, ltcHistoricalData, symbol):
     if (symbol == "LTC"):
         return ltcHistoricalData
 
-
 #init block
-DaysToDisplay = 367
+DaysToDisplay = 365
 DaysToStore = DaysToDisplay + 20 #Must always be 20 days greater (for RSI) than DaysToDisplay
 CurrentDay = DaysToStore
 btcHistoricalData = getAPI(DaysToStore, "BTC")
@@ -124,8 +123,6 @@ ethHistoricalData = getAPI(DaysToStore, "ETH")
 ltcHistoricalData = getAPI(DaysToStore, "LTC")
 RSIPeriod = 14
 BandPeriod = 20
-
-RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues, graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = mainCalc(DaysToDisplay, DaysToStore, CurrentDay, btcHistoricalData, RSIPeriod, BandPeriod)
 
 #Dash Graphing
 colors = {
@@ -151,6 +148,14 @@ RSI_COLOR = '#17BECF'
         )
 def update_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMonth, resetGraph):
     #TODO: Need to by able to change date either passed in through button click or the date picker
+    if (oneMonth == None):
+        oneMonth = 0
+    if (threeMonth == None):
+        threeMonth = 0
+    if (sixMonth == None):
+        sixMonth = 0
+    if (resetGraph == None):
+        resetGraph = 0
 
     cryptoHistoricalData = whichData(btcHistoricalData, ethHistoricalData, ltcHistoricalData, crypto_value) #changes value without having to do API recalls
     RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues, graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPeriod, BandPeriod)
@@ -159,22 +164,69 @@ def update_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMont
     possibleButtons = dict()
     possibleButtons.update({'oneMonth':oneMonth, 'threeMonth':threeMonth, 'sixMonth':sixMonth, 'resetGraph':resetGraph})
 
-    buttonPressed = max(possibleButtons.items(), key=lambda i: i[1])
-    if (buttonPressed[1] != None):
+    if (startDate != None and endDate != None):
+        startDatePosition = graphDate.index(str(datetime.strptime(startDate, '%Y-%m-%d')))
+        endDatePosition = graphDate.index(str(datetime.strptime(endDate, '%Y-%m-%d'))) + 1
+        graphDate = graphDate[startDatePosition:endDatePosition]
+
+    buttonPressed = max(possibleButtons, key=possibleButtons.get)
+    buttonPressedValue = possibleButtons.get(buttonPressed)
+
+    if (buttonPressedValue != 0):
         #Code for changing the date interval
         originalGraphDate = graphDate
+        originalGraphLower = LowerBandValues
+        originalGraphMiddle = MiddleBandValues
+        originalGraphUpper = UpperBandValues
+        originalGraphOpen = graphOpen
+        originalGraphClose = graphClose
+        originalGraphHigh = graphHigh
+        originalGraphLow = graphLow
+        originalGraphVolume = graphVolume
 
-        if (buttonPressed[0] == 'oneMonth'):
+        if (buttonPressed == 'oneMonth'):
             graphDate = graphDate[-30:]
+            LowerBandValues = LowerBandValues[-30:]
+            MiddleBandValues = MiddleBandValues[-30:]
+            UpperBandValues = UpperBandValues[-30:]
+            graphOpen = graphOpen[-30:]
+            graphClose = graphClose[-30:]
+            graphHigh = graphHigh[-30:]
+            graphLow = graphLow[-30:]
+            graphVolume = graphVolume[-30:]
 
-        if (buttonPressed[0] == 'threeMonth'):
+        if (buttonPressed == 'threeMonth'):
             graphDate = graphDate[-90:]
+            LowerBandValues = LowerBandValues[-90:]
+            MiddleBandValues = MiddleBandValues[-90:]
+            UpperBandValues = UpperBandValues[-90:]
+            graphOpen = graphOpen[-90:]
+            graphClose = graphClose[-90:]
+            graphHigh = graphHigh[-90:]
+            graphLow = graphLow[-90:]
+            graphVolume = graphVolume[-90:]
 
-        if (buttonPressed[0] == 'sixMonth'):
+        if (buttonPressed == 'sixMonth'):
             graphDate = graphDate[-180:]
+            LowerBandValues = LowerBandValues[-180:]
+            MiddleBandValues = MiddleBandValues[-180:]
+            UpperBandValues = UpperBandValues[-180:]
+            graphOpen = graphOpen[-180:]
+            graphClose = graphClose[-180:]
+            graphHigh = graphHigh[-180:]
+            graphLow = graphLow[-180:]
+            graphVolume = graphVolume[-180:]
 
-        if (buttonPressed[0] == 'resetGraph'):
+        if (buttonPressed == 'resetGraph'):
             graphDate = originalGraphDate
+            LowerBandValues = originalGraphLower
+            MiddleBandValues = originalGraphMiddle
+            UpperBandValues = originalGraphUpper
+            graphOpen = originalGraphOpen
+            graphClose = originalGraphClose
+            graphHigh = originalGraphHigh
+            graphLow = originalGraphLow
+            graphVolume = originalGraphVolume
 
     traces.append(go.Candlestick(
         x = graphDate,
@@ -294,84 +346,108 @@ def update_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMont
             dash.dependencies.Input('btn-1', 'n_clicks_timestamp'),
             dash.dependencies.Input('btn-2', 'n_clicks_timestamp'),
             dash.dependencies.Input('btn-3', 'n_clicks_timestamp'),
-            dash.dependencies.Input('btn-4', 'n_clicks_timestamp')]
+            dash.dependencies.Input('btn-4', 'n_clicks_timestamp')
+            ]
 )
 def rsi_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMonth, resetGraph):
-        cryptoHistoricalData = whichData(btcHistoricalData, ethHistoricalData, ltcHistoricalData, crypto_value) #changes value without having to do API recalls
-        RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues, graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPeriod, BandPeriod)
-        traces2 = []
+    if (oneMonth == None):
+        oneMonth = 0
+    if (threeMonth == None):
+        threeMonth = 0
+    if (sixMonth == None):
+        sixMonth = 0
+    if (resetGraph == None):
+        resetGraph = 0
 
-        possibleButtons = dict()
-        possibleButtons.update({'oneMonth':oneMonth, 'threeMonth':threeMonth, 'sixMonth':sixMonth, 'resetGraph':resetGraph})
+    cryptoHistoricalData = whichData(btcHistoricalData, ethHistoricalData, ltcHistoricalData, crypto_value) #changes value without having to do API recalls
+    RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues, graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPeriod, BandPeriod)
+    RSIValues = RSIValues[::-1]
 
-        buttonPressed = max(possibleButtons.items(), key=lambda i: i[1])
-        if (buttonPressed[1] != None):
-            #Code for changing the date interval
-            originalGraphDate = graphDate
+    traces2 = []
 
-            if (buttonPressed[0] == 'oneMonth'):
-                graphDate = graphDate[-30:]
+    possibleButtons = dict()
+    possibleButtons.update({'oneMonth':oneMonth, 'threeMonth':threeMonth, 'sixMonth':sixMonth, 'resetGraph':resetGraph})
 
-            if (buttonPressed[0] == 'threeMonth'):
-                graphDate = graphDate[-90:]
+    buttonPressed = max(possibleButtons, key=possibleButtons.get)
+    buttonPressedValue = possibleButtons.get(buttonPressed)
 
-            if (buttonPressed[0] == 'sixMonth'):
-                graphDate = graphDate[-180:]
+    if (startDate != None and endDate != None):
+        startDatePosition = graphDate.index(str(datetime.strptime(startDate, '%Y-%m-%d')))
+        endDatePosition = graphDate.index(str(datetime.strptime(endDate, '%Y-%m-%d')))
+        graphDate = graphDate[startDatePosition:endDatePosition]
 
-            if (buttonPressed[0] == 'resetGraph'):
-                graphDate = originalGraphDate
+    if (buttonPressedValue != 0):
+        #Code for changing the date interval
+        originalGraphDate = graphDate
+        originalGraphRSI = RSIValues
 
-        traces2.append(go.Scatter(
-            x=graphDate,
-            y=RSIValues,
-            line=dict(
-                color = RSI_COLOR
-            )
-        ))
-        return {
-            'data': traces2,
-            'layout': go.Layout(
-            title = (crypto_value) + ' RSI Graph',
-            xaxis = dict(
-                rangeslider = dict( visible = False ),
+        if (buttonPressed == 'oneMonth'):
+            graphDate = graphDate[-30:]
+            RSIValues = RSIValues[-30:]
+
+        if (buttonPressed == 'threeMonth'):
+            graphDate = graphDate[-90:]
+            RSIValues = RSIValues[-90:]
+
+        if (buttonPressed == 'sixMonth'):
+            graphDate = graphDate[-180:]
+            RSIValues = RSIValues[-180:]
+
+        if (buttonPressed == 'resetGraph'):
+            graphDate = originalGraphDate
+            RSIValues = originalGraphRSI
+
+    traces2.append(go.Scatter(
+        x=graphDate,
+        y=RSIValues,
+        line=dict(
+            color = RSI_COLOR
+        )
+    ))
+    return {
+        'data': traces2,
+        'layout': go.Layout(
+        title = (crypto_value) + ' RSI Graph',
+        xaxis = dict(
+            rangeslider = dict( visible = False ),
+        ),
+        yaxis=dict(
+            tickfont=dict(
+                color='rgb(0, 0, 0)' #black
             ),
-            yaxis=dict(
-                tickfont=dict(
-                    color='rgb(0, 0, 0)' #black
+            range = [0,100]
+        ),
+        margin = dict(t=40,b=40,r=40,l=40
+        ),
+        shapes=[
+                dict(
+                type='line',
+                x0= datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d'),
+                x1= datetime.strptime(max(graphDate)[0:10], '%Y-%m-%d'),
+                y0= 70,
+                y1= 70,
+                line=dict(color= 'rgb(128,0,128)', dash='dot', width=1)
                 ),
-                range = [0,100]
-            ),
-            margin = dict(t=40,b=40,r=40,l=40
-            ),
-            shapes=[
-                    dict(
-                    type='line',
-                    x0= datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d'),
-                    x1= datetime.strptime(max(graphDate)[0:10], '%Y-%m-%d'),
-                    y0= 70,
-                    y1= 70,
-                    line=dict(color= 'rgb(128,0,128)', dash='dot', width=1)
-                    ),
-                    dict(
-                    type='line',
-                    x0= datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d'),
-                    x1= datetime.strptime(max(graphDate)[0:10], '%Y-%m-%d'),
-                    y0= 30,
-                    y1= 30,
-                    line=dict(color= 'rgb(128,0,128)', dash='dot', width=1)
-                    ),
-            ],
-            legend = dict( orientation = 'h', y=0.9, yanchor='bottom'),
-            paper_bgcolor = '#D3D3D3',
-            plot_bgcolor = '#D3D3D3'
-            )
-        }
+                dict(
+                type='line',
+                x0= datetime.strptime(min(graphDate)[0:10], '%Y-%m-%d'),
+                x1= datetime.strptime(max(graphDate)[0:10], '%Y-%m-%d'),
+                y0= 30,
+                y1= 30,
+                line=dict(color= 'rgb(128,0,128)', dash='dot', width=1)
+                 ),
+        ],
+        legend = dict( orientation = 'h', y=0.9, yanchor='bottom'),
+        paper_bgcolor = '#D3D3D3',
+        plot_bgcolor = '#D3D3D3'
+        )
+    }
 
 #TODO: I want to implement MACD, EMA crossover, RSI + Bollinger band strategy
 
 @app.callback(
         Output('my-date-picker-range', 'end_date'),
-        [dash.dependencies.Input('btn-5', 'n_clicks')]
+        [dash.dependencies.Input('btn-4', 'n_clicks')]
         )
 def reset_datepicker(resetDate):
     if (resetDate is not None) and (resetDate > 0):
@@ -380,7 +456,7 @@ def reset_datepicker(resetDate):
 
 @app.callback(
         Output('my-date-picker-range', 'start_date'),
-        [dash.dependencies.Input('btn-5', 'n_clicks')]
+        [dash.dependencies.Input('btn-4', 'n_clicks')]
         )
 def reset_datepicker(resetDate):
     if (resetDate is not None) and (resetDate > 0):

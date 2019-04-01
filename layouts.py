@@ -33,10 +33,10 @@ CryptoGraphLayout = html.Div(children=[
         style={'float':'right', 'margin-right': '100px'}),
 
         html.Div([
-                html.Button('30 Day', id='btn-1'),
-                html.Button('90 Day', id='btn-2'),
-                html.Button('180 Day', id='btn-3'),
-                html.Button('Reset', id='btn-4')
+                html.Button('Last 30 Days', id='btn-1'),
+                html.Button('Last 90 Days', id='btn-2'),
+                html.Button('Last 180 Days', id='btn-3'),
+                html.Button('Reset Graph', id='btn-4')
         ],
         style={'margin-bottom':'30px', 'color':'white', 'margin-left': '100px'}),
 
