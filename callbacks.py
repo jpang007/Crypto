@@ -96,7 +96,7 @@ def mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPe
     #print (LowerBandValues, MiddleBandValues, UpperBandValues)
 
     graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume, graphRSI, graphBand = ([] for i in range(8))
-    for i in range(DaysToStore - DaysToDisplay, DaysToStore + 1):
+    for i in range(DaysToStore - DaysToDisplay, DaysToStore):
         graphOpen.append(cryptoHistoricalData['Data'][i]['open'])
         graphClose.append(cryptoHistoricalData['Data'][i]['close'])
         graphHigh.append(cryptoHistoricalData['Data'][i]['high'])
@@ -160,30 +160,25 @@ def update_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMont
     cryptoHistoricalData = whichData(btcHistoricalData, ethHistoricalData, ltcHistoricalData, crypto_value) #changes value without having to do API recalls
     RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues, graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPeriod, BandPeriod)
     traces = []
+
+    originalGraphDate = graphDate
+    originalGraphLower = LowerBandValues
+    originalGraphMiddle = MiddleBandValues
+    originalGraphUpper = UpperBandValues
+    originalGraphOpen = graphOpen
+    originalGraphClose = graphClose
+    originalGraphHigh = graphHigh
+    originalGraphLow = graphLow
+    originalGraphVolume = graphVolume
+
     #code to get most recent button press
     possibleButtons = dict()
     possibleButtons.update({'oneMonth':oneMonth, 'threeMonth':threeMonth, 'sixMonth':sixMonth, 'resetGraph':resetGraph})
-
-    if (startDate != None and endDate != None):
-        startDatePosition = graphDate.index(str(datetime.strptime(startDate, '%Y-%m-%d')))
-        endDatePosition = graphDate.index(str(datetime.strptime(endDate, '%Y-%m-%d'))) + 1
-        graphDate = graphDate[startDatePosition:endDatePosition]
 
     buttonPressed = max(possibleButtons, key=possibleButtons.get)
     buttonPressedValue = possibleButtons.get(buttonPressed)
 
     if (buttonPressedValue != 0):
-        #Code for changing the date interval
-        originalGraphDate = graphDate
-        originalGraphLower = LowerBandValues
-        originalGraphMiddle = MiddleBandValues
-        originalGraphUpper = UpperBandValues
-        originalGraphOpen = graphOpen
-        originalGraphClose = graphClose
-        originalGraphHigh = graphHigh
-        originalGraphLow = graphLow
-        originalGraphVolume = graphVolume
-
         if (buttonPressed == 'oneMonth'):
             graphDate = graphDate[-30:]
             LowerBandValues = LowerBandValues[-30:]
@@ -217,16 +212,27 @@ def update_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMont
             graphLow = graphLow[-180:]
             graphVolume = graphVolume[-180:]
 
-        if (buttonPressed == 'resetGraph'):
-            graphDate = originalGraphDate
-            LowerBandValues = originalGraphLower
-            MiddleBandValues = originalGraphMiddle
-            UpperBandValues = originalGraphUpper
-            graphOpen = originalGraphOpen
-            graphClose = originalGraphClose
-            graphHigh = originalGraphHigh
-            graphLow = originalGraphLow
-            graphVolume = originalGraphVolume
+    if (startDate != None and endDate != None):
+        graphDate = originalGraphDate
+        LowerBandValues = originalGraphLower
+        MiddleBandValues = originalGraphMiddle
+        UpperBandValues = originalGraphUpper
+        graphOpen = originalGraphOpen
+        graphClose = originalGraphClose
+        graphHigh = originalGraphHigh
+        graphLow = originalGraphLow
+        graphVolume = originalGraphVolume
+        startDatePosition = graphDate.index(str(datetime.strptime(startDate, '%Y-%m-%d')))
+        endDatePosition = graphDate.index(str(datetime.strptime(endDate, '%Y-%m-%d'))) + 1
+        graphDate = graphDate[startDatePosition:endDatePosition]
+        LowerBandValues = LowerBandValues[startDatePosition:endDatePosition]
+        MiddleBandValues = MiddleBandValues[startDatePosition:endDatePosition]
+        UpperBandValues = UpperBandValues[startDatePosition:endDatePosition]
+        graphOpen = graphOpen[startDatePosition:endDatePosition]
+        graphClose = graphClose[startDatePosition:endDatePosition]
+        graphHigh = graphHigh[startDatePosition:endDatePosition]
+        graphLow = graphLow[startDatePosition:endDatePosition]
+        graphVolume = graphVolume[startDatePosition:endDatePosition]
 
     traces.append(go.Candlestick(
         x = graphDate,
@@ -363,6 +369,9 @@ def rsi_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMonth, 
     RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues, graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPeriod, BandPeriod)
     RSIValues = RSIValues[::-1]
 
+    originalGraphDate = graphDate
+    originalGraphRSI = RSIValues
+
     traces2 = []
 
     possibleButtons = dict()
@@ -371,16 +380,7 @@ def rsi_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMonth, 
     buttonPressed = max(possibleButtons, key=possibleButtons.get)
     buttonPressedValue = possibleButtons.get(buttonPressed)
 
-    if (startDate != None and endDate != None):
-        startDatePosition = graphDate.index(str(datetime.strptime(startDate, '%Y-%m-%d')))
-        endDatePosition = graphDate.index(str(datetime.strptime(endDate, '%Y-%m-%d')))
-        graphDate = graphDate[startDatePosition:endDatePosition]
-
     if (buttonPressedValue != 0):
-        #Code for changing the date interval
-        originalGraphDate = graphDate
-        originalGraphRSI = RSIValues
-
         if (buttonPressed == 'oneMonth'):
             graphDate = graphDate[-30:]
             RSIValues = RSIValues[-30:]
@@ -393,9 +393,13 @@ def rsi_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMonth, 
             graphDate = graphDate[-180:]
             RSIValues = RSIValues[-180:]
 
-        if (buttonPressed == 'resetGraph'):
-            graphDate = originalGraphDate
-            RSIValues = originalGraphRSI
+    if (startDate != None and endDate != None):
+        graphDate = originalGraphDate
+        RSIValues = originalGraphRSI
+        startDatePosition = graphDate.index(str(datetime.strptime(startDate, '%Y-%m-%d')))
+        endDatePosition = graphDate.index(str(datetime.strptime(endDate, '%Y-%m-%d'))) + 1
+        graphDate = graphDate[startDatePosition:endDatePosition]
+        RSIValues = RSIValues[startDatePosition:endDatePosition]
 
     traces2.append(go.Scatter(
         x=graphDate,
@@ -447,17 +451,35 @@ def rsi_graph(crypto_value, startDate, endDate, oneMonth, threeMonth, sixMonth, 
 
 @app.callback(
         Output('my-date-picker-range', 'end_date'),
-        [dash.dependencies.Input('btn-4', 'n_clicks')]
+        [dash.dependencies.Input('btn-1', 'n_clicks'),
+        dash.dependencies.Input('btn-2', 'n_clicks'),
+        dash.dependencies.Input('btn-3', 'n_clicks'),
+        dash.dependencies.Input('btn-4', 'n_clicks')]
         )
-def reset_datepicker(resetDate):
+def reset_datepicker(oneMonth, threeMonth, sixMonth, resetDate):
+    if (oneMonth is not None) and (oneMonth > 0):
+        return None
+    if (threeMonth is not None) and (threeMonth > 0):
+        return None
+    if (sixMonth is not None) and (sixMonth > 0):
+        return None
     if (resetDate is not None) and (resetDate > 0):
         return None
 
 
 @app.callback(
         Output('my-date-picker-range', 'start_date'),
-        [dash.dependencies.Input('btn-4', 'n_clicks')]
+        [dash.dependencies.Input('btn-1', 'n_clicks'),
+        dash.dependencies.Input('btn-2', 'n_clicks'),
+        dash.dependencies.Input('btn-3', 'n_clicks'),
+        dash.dependencies.Input('btn-4', 'n_clicks')]
         )
-def reset_datepicker(resetDate):
+def reset_datepicker(oneMonth, threeMonth, sixMonth, resetDate):
+    if (oneMonth is not None) and (oneMonth > 0):
+        return None
+    if (threeMonth is not None) and (threeMonth > 0):
+        return None
+    if (sixMonth is not None) and (sixMonth > 0):
+        return None
     if (resetDate is not None) and (resetDate > 0):
         return None
