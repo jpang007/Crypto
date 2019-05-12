@@ -4,7 +4,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app, server
-from layouts import CryptoGraphLayout
+from layouts import CryptoGraphLayout, BackTestLayout
 import callbacks
 
 import requests
@@ -19,13 +19,19 @@ from flask import Flask, render_template
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content')
+    html.Div(id='page-content', style={'backgroundColor': '#D3D3D3'})
 ])
 
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    return CryptoGraphLayout
+    if pathname == '/':
+        return CryptoGraphLayout
+    elif pathname == '/backtest':
+         return BackTestLayout
+    else:
+        return '404'
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
