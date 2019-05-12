@@ -3,6 +3,6 @@
   "name": "cryptotaapp",
   "builds": [
     { "src": "**/*.py", "use": "@now/python" },
-    { "src": "css/**", "use": "@now/static" }
+    { "src": "assets/**", "use": "@now/static" }
   ]
 }

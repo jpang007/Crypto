@@ -8,7 +8,6 @@ import numpy
 import plotly.graph_objs as go
 from datetime import datetime
 import plotly.tools as tls
-import pandas as pd
 
 #handles all calculations and callbacks
 #calculates average gain and loss over a period (usually 14)
@@ -886,7 +885,7 @@ def calculateBacktestPercent(basic, advanced, dollarsSubmit, dollarsBlur, bitcoi
     cryptoHistoricalData = whichData(btcHistoricalData, ethHistoricalData, ltcHistoricalData, crypto_value) #changes value without having to do API recalls
     RSIValues, LowerBandValues, MiddleBandValues, UpperBandValues, Histogram, SignalList, MACDList, graphOpen, graphClose, graphHigh, graphLow, graphDate, graphVolume = mainCalc(DaysToDisplay, DaysToStore, CurrentDay, cryptoHistoricalData, RSIPeriod, BandPeriod, MACDPeriod)
     RSIValues = RSIValues[::-1]
-    print basic
+
     if (basic == "RSI"):
         dateList, priceList, tradeList, totalReturn, value = RSISignal(RSIValues, graphDate, graphClose, testdollars)
     elif (basic == "BB"):
